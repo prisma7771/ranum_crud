@@ -19,6 +19,7 @@ export default ({ env }) => ({
       jwt: {
         expiresIn: '7d', // Change this as needed
       },
+      jwtSecret: env('JWT_SECRET', 'your-random-secret-key'),
     },
   },
 });
