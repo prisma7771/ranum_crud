@@ -1,0 +1,47 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pakets",
+  "info": {
+    "singularName": "paket",
+    "pluralName": "pakets",
+    "displayName": "Paket",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "nama": {
+      "type": "string"
+    },
+    "harga": {
+      "type": "biginteger"
+    },
+    "bonus": {
+      "type": "string"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "Wedding",
+        "Other"
+      ]
+    },
+    "includes": {
+      "type": "json",
+      "default": {}
+    },
+    "before_event": {
+      "type": "json",
+      "default": {}
+    },
+    "on_event": {
+      "type": "json",
+      "default": {}
+    },
+    "add_ons": {
+      "type": "json",
+      "default": {}
+    }
+  }
+}
