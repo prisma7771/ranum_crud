@@ -12,7 +12,6 @@ import TypeInput from "@/components/page/pakets/component/typeInput";
 import { updatePaket, deletePaket } from "@/lib/pakets";
 
 export default function EditPaket({ paket }: { paket: any }) {
-  const router = useRouter();
 
   const [formData, setFormData] = useState({
     name: paket.name || "",

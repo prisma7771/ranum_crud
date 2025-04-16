@@ -1,8 +1,11 @@
 "use client";
 
+import { useRef } from "react";
+import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
-import { deleteGalleries, getGalleries } from "@/lib/galleries";
+import { deleteGalleries, getGalleries, postGalleries } from "@/lib/galleries";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 // import { deleteFromCloudinary } from "@/lib/cloudinary";  // No longer needed
 
 interface Gallery {
@@ -16,6 +19,7 @@ interface Gallery {
 export default function ListGalleries() {
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [loadingId, setLoadingId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchGalleries();
@@ -30,72 +34,125 @@ export default function ListGalleries() {
     }
   };
 
-// Your component with the delete button (ListGalleries)
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-const handleDelete = async (id: number, publicId: string) => {
-  const confirm = window.confirm("Delete this image?");
-  if (!confirm) return;
+  const handleClickUpload = () => {
+    fileInputRef.current?.click();
+  };
 
-  setLoadingId(id); // Set loading state to show user is deleting
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  try {
-    // First, delete from Cloudinary by calling the API route
-    const res = await fetch("/api/deleteCloudinaryImage", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ publicId }),
-    });
-
-    // Check if the response is valid
-    if (!res.ok) {
-      const text = await res.text();  // Get the response as text
-      throw new Error(`Failed to delete image from Cloudinary: ${text}`);
+    const validTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      alert("Only JPG, PNG, or WEBP files are allowed.");
+      return;
     }
 
-    const data = await res.json();  // Parse as JSON if it's valid
+    try {
+      setLoading(true);
 
-    // Now, delete from Supabase
-    await deleteGalleries(id);
+      const { public_id, url, thumb_url } = await uploadToCloudinary(file);
+      const saved = await postGalleries(public_id, file.name, url, thumb_url);
 
-    // Optionally, update local state or reload the page
-    setGalleries(prev => prev.filter(img => img.id !== id));
+      setGalleries((prev) => [...prev, saved]);
 
-    alert("Image deleted successfully!");
-  } catch (err: any) {
-    alert("Delete failed: " + err.message);
-  } finally {
-    setLoadingId(null); // Reset loading state after operation
-  }
-};
+      alert("Image uploaded and saved!");
+    } catch (err: any) {
+      alert("Upload failed: " + err.message);
+    } finally {
+      setLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
-  
+  // Your component with the delete button (ListGalleries)
+  const handleDelete = async (id: number, publicId: string) => {
+    const confirm = window.confirm("Delete this image?");
+    if (!confirm) return;
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/deleteCloudinaryImage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publicId }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Failed to delete image from Cloudinary: ${text}`);
+      }
+
+      await deleteGalleries(id);
+      setGalleries((prev) => prev.filter((img) => img.id !== id));
+
+      alert("Image deleted successfully!");
+    } catch (err: any) {
+      alert("Delete failed: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-2">
-      {galleries.map((img) => (
-        <div
-          key={img.id}
-          className="relative group rounded overflow-hidden shadow-md bg-white"
+    <div>
+      <div className="flex justify-end">
+        <button
+          className="btn btn-sm btn-primary flex items-center gap-2"
+          onClick={handleClickUpload}
+          disabled={loading}
         >
-          <img
-            src={img.thumb_url}
-            alt="Gallery image"
-            className="w-full h-auto object-cover"
-          />
+          {loading ? (
+            <>
+              <span className="loading loading-spinner loading-sm"></span>
+              Processing...
+            </>
+          ) : (
+            <>
+              <Plus size={16} />
+              Add New
+            </>
+          )}
+        </button>
 
-          <button
-            onClick={() => handleDelete(img.id, img.public_id)}
-            disabled={loadingId === img.id}
-            className={`absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${
-              loadingId === img.id ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg, image/png, image/webp"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-2">
+        {galleries.map((img) => (
+          <div
+            key={img.id}
+            className="relative group rounded overflow-hidden shadow-md"
           >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      ))}
+            <img
+              src={img.thumb_url}
+              alt="Gallery image"
+              className="w-full h-36 object-fill"
+            />
+
+            <button
+              onClick={() => handleDelete(img.id, img.public_id)}
+              disabled={loadingId === img.id}
+              className={`absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${
+                loadingId === img.id ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
