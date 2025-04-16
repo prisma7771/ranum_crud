@@ -2,14 +2,15 @@
 
 import { useContext, useState } from "react";
 import Link from "next/link";
-import { PaketsContext } from "@/context/paketsContext";
+import { AppDataContext } from "@/context/AppContext";
 import { Edit, Trash2 } from "lucide-react";
-
 import { deletePaket } from "@/lib/pakets";
 
 export default function ListPakets() {
   const [loadingId, setLoadingId] = useState<number | null>(null);
-  const pakets = useContext(PaketsContext);
+
+  // ✅ Only grab pakets from context
+  const { pakets, setPakets } = useContext(AppDataContext);
 
   const handleDelete = async (id: number) => {
     const confirm = window.confirm(
@@ -20,7 +21,11 @@ export default function ListPakets() {
     try {
       setLoadingId(id);
       await deletePaket(id);
-      window.location.reload(); // reload or re-fetch pakets
+
+      // Update context after deletion
+      setPakets((prev) => prev.filter((paket) => paket.id !== id));
+
+      alert("Paket deleted successfully!");
     } catch (err: any) {
       alert("Failed to delete paket: " + err.message);
     } finally {
@@ -28,7 +33,7 @@ export default function ListPakets() {
     }
   };
 
-  // Sort pakets by id (ascending order)
+  // Sorting pakets by id
   const sortedPakets = pakets.sort((a: any, b: any) => a.id - b.id);
 
   return (
@@ -52,9 +57,7 @@ export default function ListPakets() {
                 <td>{paket.price}</td>
                 <td>{paket.bonus}</td>
                 <td className="flex gap-2">
-                  <Link
-                    href={`/pakets/${paket.id}/edit`}
-                  >
+                  <Link href={`/pakets/${paket.id}/edit`}>
                     <button className="btn btn-sm btn-ghost text-blue-500">
                       <Edit size={16} />
                     </button>

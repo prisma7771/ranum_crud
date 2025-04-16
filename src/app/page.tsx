@@ -1,10 +1,11 @@
-"use client"
+"use client";
 
-import { useContext } from 'react';
-import { PaketsContext } from '@/context/paketsContext';
+import { useContext } from "react";
+import { AppDataContext } from "@/context/AppContext";
 
 export default function HomePage() {
-  const pakets = useContext(PaketsContext);
+  const { pakets, galleries } = useContext(AppDataContext);
+
   return (
     <div className="p-4 bg-gray-100">
       <h1 className="text-2xl font-bold mb-6">Dashboard Overview</h1>
@@ -27,8 +28,8 @@ export default function HomePage() {
             </svg>
           </div>
           <div className="stat-title">Total Pakets</div>
-          <div className="stat-value text-primary">{ pakets.length}</div>
-          <div className="stat-desc">Coming soon</div>
+          <div className="stat-value text-primary">{pakets.length}</div>
+          <div className="stat-desc">Updated regularly</div>
         </div>
 
         <div className="stat">
@@ -48,10 +49,10 @@ export default function HomePage() {
             </svg>
           </div>
           <div className="stat-title">Gallery Items</div>
-          <div className="stat-value text-secondary">--</div>
-          <div className="stat-desc">Coming soon</div>
+          <div className="stat-value text-secondary">{galleries.length}</div>
+          <div className="stat-desc">Updated regularly</div>
         </div>
       </div>
     </div>
-  )
+  );
 }

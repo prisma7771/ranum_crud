@@ -1,48 +1,25 @@
 "use client";
 
-import { useRef } from "react";
-import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
-import { deleteGalleries, getGalleries, postGalleries } from "@/lib/galleries";
+import { useRef, useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { uploadToCloudinary } from "@/lib/cloudinary";
-// import { deleteFromCloudinary } from "@/lib/cloudinary";  // No longer needed
-
-interface Gallery {
-  id: number;
-  public_id: string;
-  image_name: string;
-  url: string;
-  thumb_url: string;
-}
+import { deleteGalleries, postGalleries } from "@/lib/galleries";
+import { useContext } from "react";
+import { AppDataContext } from "@/context/AppContext"; // Using context
 
 export default function ListGalleries() {
-  const [galleries, setGalleries] = useState<Gallery[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { galleries, setGalleries } = useContext(AppDataContext); // Use context here
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchGalleries();
-  }, []);
-
-  const fetchGalleries = async () => {
-    try {
-      const data = await getGalleries();
-      setGalleries(data || []);
-    } catch (err: any) {
-      console.error("Failed to fetch galleries:", err.message);
-    }
-  };
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+  // Trigger file input click
   const handleClickUpload = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  // Handle file change for upload
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -55,9 +32,13 @@ export default function ListGalleries() {
     try {
       setLoading(true);
 
+      // Upload image to Cloudinary
       const { public_id, url, thumb_url } = await uploadToCloudinary(file);
+
+      // Save gallery image info to the database
       const saved = await postGalleries(public_id, file.name, url, thumb_url);
 
+      // Update the galleries context to sync the new image
       setGalleries((prev) => [...prev, saved]);
 
       alert("Image uploaded and saved!");
@@ -69,14 +50,15 @@ export default function ListGalleries() {
     }
   };
 
-  // Your component with the delete button (ListGalleries)
+  // Handle gallery image delete
   const handleDelete = async (id: number, publicId: string) => {
     const confirm = window.confirm("Delete this image?");
     if (!confirm) return;
 
-    setLoading(true);
+    setLoadingId(id);
 
     try {
+      // Delete the image from Cloudinary
       const res = await fetch("/api/deleteCloudinaryImage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -88,14 +70,17 @@ export default function ListGalleries() {
         throw new Error(`Failed to delete image from Cloudinary: ${text}`);
       }
 
+      // Delete image record from the database
       await deleteGalleries(id);
+
+      // Update the galleries context to remove the deleted image
       setGalleries((prev) => prev.filter((img) => img.id !== id));
 
       alert("Image deleted successfully!");
     } catch (err: any) {
       alert("Delete failed: " + err.message);
     } finally {
-      setLoading(false);
+      setLoadingId(null);
     }
   };
 
@@ -129,6 +114,7 @@ export default function ListGalleries() {
           className="hidden"
         />
       </div>
+
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-2">
         {galleries.map((img) => (
           <div
