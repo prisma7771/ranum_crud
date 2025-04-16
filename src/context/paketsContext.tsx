@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { getPakets } from "@/pages/api/pakets";
+import { getPakets } from "@/lib/pakets";
 
 export const PaketsContext = createContext<any[]>([]);
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
-import { deleteGalleries, getGalleries } from "@/pages/api/galleries";
+import { deleteGalleries, getGalleries } from "@/lib/galleries";
 // import { deleteFromCloudinary } from "@/lib/cloudinary";  // No longer needed
 
 interface Gallery {

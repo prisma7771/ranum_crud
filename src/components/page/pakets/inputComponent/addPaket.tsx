@@ -8,7 +8,7 @@ import PriceInput from "@/components/page/pakets/component/priceInput";
 import DynamicListInput from "@/components/page/pakets/component/dynamicInput";
 import AddonInput from "@/components/page/pakets/component/addonsInput";
 import TypeInput from "../component/typeInput";
-import { postPakets } from "@/pages/api/pakets";
+import { postPakets } from "@/lib/pakets";
 
 export default function AddPaket() {
 

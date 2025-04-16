@@ -9,7 +9,7 @@ import DynamicListInput from "@/components/page/pakets/component/dynamicInput";
 import AddonInput from "@/components/page/pakets/component/addonsInput";
 import TypeInput from "@/components/page/pakets/component/typeInput";
 
-import { updatePaket, deletePaket } from "@/pages/api/pakets";
+import { updatePaket, deletePaket } from "@/lib/pakets";
 
 export default function EditPaket({ paket }: { paket: any }) {
   const router = useRouter();

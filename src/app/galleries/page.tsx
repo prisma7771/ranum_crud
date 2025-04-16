@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { Plus } from "lucide-react";
 import { uploadToCloudinary } from "@/lib/cloudinary";
-import { postGalleries } from "@/pages/api/galleries";
+import { postGalleries } from "@/lib/galleries";
 import ListGalleries from "@/components/page/galleries/listGalleries";
 
 export default function GalleriesPage() {

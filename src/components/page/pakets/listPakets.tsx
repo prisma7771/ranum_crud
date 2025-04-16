@@ -5,7 +5,7 @@ import Link from "next/link";
 import { PaketsContext } from "@/context/paketsContext";
 import { Edit, Trash2 } from "lucide-react";
 
-import { deletePaket } from "@/pages/api/pakets";
+import { deletePaket } from "@/lib/pakets";
 
 export default function ListPakets() {
   const [loadingId, setLoadingId] = useState<number | null>(null);

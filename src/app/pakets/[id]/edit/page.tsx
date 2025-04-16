@@ -1,5 +1,5 @@
 import EditPaket from "@/components/page/pakets/editComponent/editPaket";
-import { getPaketById } from "@/pages/api/pakets";
+import { getPaketById } from "@/lib/pakets";
 
 export default async function EditPaketPage({params}: {params: {id: string}}) {
     const id = parseInt(params.id, 10);
